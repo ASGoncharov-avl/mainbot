@@ -226,7 +226,6 @@ while True:
             print("{now}: {signal}")
 
             if signal in ['buy', 'sell'] and can_enter_again(signal):
-                print("signal")
                 entry_price = latest['close']
                 stop_price = entry_price * (1 - STOP_LOSS_PCT) if signal == 'buy' else entry_price * (1 + STOP_LOSS_PCT)
                 position_type = 'long' if signal == 'buy' else 'short'
