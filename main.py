@@ -223,7 +223,7 @@ while True:
 
             latest = df.iloc[-2]
             signal = latest['signal']
-            print(signal)
+            print("{now}: {signal}")
 
             if signal in ['buy', 'sell'] and can_enter_again(signal):
                 print("signal")
