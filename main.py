@@ -224,6 +224,7 @@ while True:
             latest = df.iloc[-2]
             signal = latest['signal']
             bot.send_message(TELEGRAM_CHAT_ID, f"{now}: {signal}")
+            print(f"{now}: {signal}")
 
             if signal in ['buy', 'sell'] and can_enter_again(signal):
                 entry_price = latest['close']
