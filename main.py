@@ -30,7 +30,7 @@ entry_history = deque(maxlen=100)
 open_positions = []
 client = BinanceClient()
 
-def fetch_klines_paged(symbol=symbol, interval=interval,  total_bars=60000, client = None):
+def fetch_klines_paged(symbol=symbol, interval=interval,  total_bars=20000, client = None):
     if client is None:
         client = BinanceClient()
 
@@ -69,7 +69,7 @@ def fetch_klines_paged(symbol=symbol, interval=interval,  total_bars=60000, clie
     return df
 
 def compute_bollinger(df):
-    df = fetch_klines_paged(total_bars=50000)
+    df = fetch_klines_paged(total_bars=10000)
     df['ma'] = df['close'].rolling(bb_period).mean()
     df['std'] = df['close'].rolling(bb_period).std()
     df['upper'] = df['ma'] + bb_std * df['std']
@@ -88,7 +88,7 @@ def compute_rsi(df, period=450):
     return df
 
 def get_last_closed_candle():
-    df = fetch_klines_paged(total_bars=50000)
+    df = fetch_klines_paged(total_bars=10000)
     last_candle = df.iloc[-2]  # предпоследняя — она закрыта
     now = datetime.datetime.now(datetime.UTC)
     if (now - last_candle['timestamp'].to_pydatetime()).total_seconds() >= 300:
