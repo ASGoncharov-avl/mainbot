@@ -26,7 +26,7 @@ config = {
     'rsi': 60
 }
 
-def fetch_klines_paged(symbol=symbol, interval=interval, total_bars=100000, client=None):
+def fetch_klines_paged(symbol=symbol, interval=interval, total_bars=10000, client=None):
     if client is None:
         client = Client()
 
@@ -145,7 +145,7 @@ def check_signal_row(row, prev_row):
     return None
     
 if __name__ == '__main__':
-    df = fetch_klines_paged(symbol, interval, 100000, client)
+    df = fetch_klines_paged(symbol, interval, 10000, client)
     df = compute_rsi(df)
     df = compute_bollinger(df)
     df = get_csi(df)
