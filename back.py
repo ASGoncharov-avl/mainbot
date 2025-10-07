@@ -7,57 +7,15 @@ from scipy.stats import zscore
 from binance.client import Client as BinanceClient
 from pybit.unified_trading import HTTP
 import telebot
+import config
+from get_klines import fetch_klines_paged
 # === НАСТРОЙКИ ===
 
 symbol = "DOGEUSDT"
-interval = "5m"
-
+interval = 5
 bb_period = 40
 bb_std = 1
-
 STOP_LOSS_PCT = 0.004
-
-client = BinanceClient()
-
-config = {
-    'min_cluster': 3,
-    'bull_quant': 0.75,
-    'bear_quant': 0.25,
-    'rsi': 60
-}
-
-def fetch_klines_paged(symbol=symbol, interval=interval, total_bars=10000, client=None):
-    if client is None:
-        client = Client()
-
-    limit = 1000
-    data = []
-    end_time = int(time.time() * 1000)
-
-    while len(data) < total_bars:
-        bars_to_fetch = min(limit, total_bars - len(data))
-        try:
-            klines = client.futures_klines(symbol=symbol, interval=interval, limit=bars_to_fetch, endTime=end_time)
-        except Exception as e:
-            print("Ошибка Binance API:", e)
-            break
-
-        if not klines:
-            break
-
-        data = klines + data
-        end_time = klines[0][0] - 1
-        time.sleep(0.2)
-
-    df = pd.DataFrame(data, columns=[
-        'timestamp', 'open', 'high', 'low', 'close', 'volume',
-        'close_time', 'quote_asset_volume', 'number_of_trades',
-        'taker_buy_base', 'taker_buy_quote', 'ignore'
-    ])
-    df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
-    df[['open','high','low','close','volume']] = df[['open','high','low','close','volume']].astype(float)
-    df = df.drop_duplicates('timestamp').sort_values('timestamp').reset_index(drop=True)
-    return df
     
 def compute_rsi(df, period=450):
     delta = df['close'].diff()
@@ -67,7 +25,7 @@ def compute_rsi(df, period=450):
     avg_loss = loss.rolling(period, min_periods=1).mean()
     rs = avg_gain / avg_loss
     df['RSI'] = 100 - (100 / (1 + rs))
-    df['RSI'] = df['RSI'].fillna(method='bfill')
+    df['RSI'] = df['RSI'].bfill()
     return df
 
 def compute_csc(df, min_cluster, bull_quant, bear_quant):
@@ -130,12 +88,12 @@ def check_signal_row(row, prev_row):
     long_cond = (
         row['close'] < row['lower'] and
         row['CSI'] > 0 and row['CSI'] > prev_row['CSI'] and
-        cluster.startswith('bull') and row['RSI'] < config['rsi']
+        cluster.startswith('bull') and row['RSI'] < config.rsi
     )
     short_cond = (
         row['close'] > row['upper'] and
         row['CSI'] < 0 and row['CSI'] < prev_row['CSI'] and
-        cluster.startswith('bear') and row['RSI'] > (100 - config['rsi'])
+        cluster.startswith('bear') and row['RSI'] > (100 - config.rsi)
     )
 
     if long_cond:
@@ -145,17 +103,17 @@ def check_signal_row(row, prev_row):
     return None
     
 if __name__ == '__main__':
-    df = fetch_klines_paged(symbol, interval, 10000, client)
-    df = compute_rsi(df)
+    df = fetch_klines_paged(symbol, interval, 8640)
     df = compute_bollinger(df)
     df = get_csi(df)
-    df = compute_csc(df, config['min_cluster'], config['bull_quant'], config['bear_quant'])
+    df = compute_csc(df, config.min_cluster, config.bull_quant, config.bear_quant)
+    df = compute_rsi(df)   
 
     signals = [None]
     for i in range(1, len(df)):
         signals.append(check_signal_row(df.iloc[i], df.iloc[i - 1]))
     df['signal'] = signals
-
+    df.tail(5)[['timestamp','CSI']].to_csv('dftest.csv', sep=';', index=False, mode='a')
     
     in_position = False
     entry_price = None
@@ -209,10 +167,10 @@ if __name__ == '__main__':
 
     # === Сохраняем сделки ===
     trades_df = pd.DataFrame(completed_trades)
-    #   trades_df.to_csv('trades_complete.csv', sep=';', index=False)
+    trades_df.to_csv('trades_complete.csv', sep=';', index=False)
 
     print("Последние сделки:")
-    print(trades_df.tail(10))
+    print(trades_df.tail(5))
 
     total_pnl = trades_df['pnl_%'].sum()
     print(f"\nОбщий PnL по стратегии: {total_pnl:.2f}%")
