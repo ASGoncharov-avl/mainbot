@@ -119,18 +119,20 @@ while True:
             df = pd.concat([df, new_df.tail(1)]).drop_duplicates('timestamp').reset_index(drop=True)
             if len(df) > config.total_bars:
                 df = df.tail(config.total_bars)
-            print(new_df.tail(1)['timestamp']) # предпоследняя свеча
-            print(df.iloc[-2]['timestamp'])
+            print(new_df.tail(1)[['timestamp', 'close']]) # предпоследняя свеча
+            print(df.iloc[-1][['timestamp', 'close']])
             df = compute_bollinger(df)
             df = get_csi(df)
             df = compute_csc(df)
             df = compute_rsi(df)
             df['signal'] = [None] + [check_signal_row(df.iloc[i], df.iloc[i - 1]) for i in range(1, len(df))]
-            df.tail(1).to_csv('df.csv', sep=';', index=False, mode='a', header=False)
+            # df.tail(1).to_csv('df.csv', sep=';', index=False, mode='a', header=False)
+            # new_df.tail(1).to_csv('df.csv', sep=';', index=False, mode='a', header=False)
             latest = df.iloc[-2]
             signal = latest['signal']
+            
             bot.send_message(TELEGRAM_CHAT_ID, f"{df.iloc[-2]['timestamp']}: {signal}")
-            print(f"{datetime.datetime.now(offset)}: {signal}")
+            print(f"{df.iloc[-1]['timestamp']}: {signal}")
 
             if signal in ['buy', 'sell'] and can_enter_again(signal):
                 entry_price = latest['close']
