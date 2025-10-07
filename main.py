@@ -103,6 +103,7 @@ def can_enter_again(signal_type):
 bot.send_message(TELEGRAM_CHAT_ID, "📈 Бот запущен")
 print("Бот запущен")
 df = fetch_klines_paged()
+df = df.drop(df.tail(1).index, inplace=True)
 last_checked_minute = None
 
 while True:
@@ -119,8 +120,7 @@ while True:
             df = pd.concat([df, new_df.tail(1)]).drop_duplicates('timestamp').reset_index(drop=True)
             if len(df) > config.total_bars:
                 df = df.tail(config.total_bars)
-            print(new_df.tail(1)[['timestamp', 'close']]) # предпоследняя свеча
-            print(df.iloc[-1][['timestamp', 'close']])
+       
             df = compute_bollinger(df)
             df = get_csi(df)
             df = compute_csc(df)
