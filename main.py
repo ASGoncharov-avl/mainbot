@@ -131,7 +131,7 @@ while True:
             latest = df.iloc[-2]
             signal = latest['signal']
             
-            bot.send_message(TELEGRAM_CHAT_ID, f"{df.iloc[-2]['timestamp']}: {signal}")
+            bot.send_message(TELEGRAM_CHAT_ID, f"{df.iloc[-1][['timestamp', 'CSI']]}: {signal}")
             print(f"{df.iloc[-1]['timestamp']}: {signal}")
 
             if signal in ['buy', 'sell'] and can_enter_again(signal):
