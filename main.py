@@ -6,18 +6,16 @@ import time
 import datetime
 from collections import deque
 from scipy.stats import zscore
-from binance.client import Client as BinanceClient
 from pybit.unified_trading import HTTP
 import telebot
 import pytz
-from get_klines import fetch_klines_paged
+from get_klines import fetch_klines_paged, TRADE_QTY
 
 # === НАСТРОЙКИ ===
-STOP_LOSS_PCT = 0.004
-TRADE_QTY = 1200
 EXIT_AFTER_BARS = 3 #15 минут
 TELEGRAM_CHAT_ID = config.TELEGRAM_CHAT_ID #свой chat_id
 offset = datetime.timezone(datetime.timedelta(hours=3))
+
 
 # === API ===
 bot = telebot.TeleBot(config.token) #tg bot
@@ -30,7 +28,7 @@ entry_history = deque(maxlen=100)
 open_positions = []
 
 def get_last_closed_candle():
-    df = fetch_klines_paged(total_bars=10000)
+    df = fetch_klines_paged(total_bars = 5)
     last_candle = df.iloc[-2]  # предпоследняя — она закрыта
     now = datetime.datetime.now(datetime.UTC)
     if (now - last_candle['timestamp'].to_pydatetime()).total_seconds() >= 300:
@@ -103,7 +101,8 @@ def can_enter_again(signal_type):
 bot.send_message(TELEGRAM_CHAT_ID, "📈 Бот запущен")
 print("Бот запущен")
 df = fetch_klines_paged()
-df = df.drop(df.tail(1).index, inplace=True)
+df = df.iloc[:-1]
+# print(df.tail(3))
 last_checked_minute = None
 
 while True:
@@ -111,15 +110,17 @@ while True:
         now = datetime.datetime.now()
         if now.minute % 5 == 0 and now.second < 10:
             if last_checked_minute == now.minute:
-                time.sleep(0.1)
+                time.sleep(0.2)
                 continue
             last_checked_minute = now.minute
             new_df = get_last_closed_candle()
             if new_df is None:
                 continue
             df = pd.concat([df, new_df.tail(1)]).drop_duplicates('timestamp').reset_index(drop=True)
+            # print(df.tail(3))
             if len(df) > config.total_bars:
                 df = df.tail(config.total_bars)
+            # print(df.tail(3))
        
             df = compute_bollinger(df)
             df = get_csi(df)
@@ -128,15 +129,16 @@ while True:
             df['signal'] = [None] + [check_signal_row(df.iloc[i], df.iloc[i - 1]) for i in range(1, len(df))]
             # df.tail(1).to_csv('df.csv', sep=';', index=False, mode='a', header=False)
             # new_df.tail(1).to_csv('df.csv', sep=';', index=False, mode='a', header=False)
+            print(df.tail(3))
             latest = df.iloc[-2]
             signal = latest['signal']
             
-            bot.send_message(TELEGRAM_CHAT_ID, f"{df.iloc[-1][['timestamp', 'CSI']]}: {signal}")
+            bot.send_message(TELEGRAM_CHAT_ID, f"{df.tail(2)[['timestamp', 'CSI']]}: {signal}")
             print(f"{df.iloc[-1]['timestamp']}: {signal}")
 
             if signal in ['buy', 'sell'] and can_enter_again(signal):
                 entry_price = latest['close']
-                stop_price = entry_price * (1 - STOP_LOSS_PCT) if signal == 'buy' else entry_price * (1 + STOP_LOSS_PCT)
+                stop_price = entry_price * (1 - config.STOP_LOSS_PCT) if signal == 'buy' else entry_price * (1 + config.STOP_LOSS_PCT)
                 position_type = 'long' if signal == 'buy' else 'short'
                 entry_time = datetime.datetime.now(datetime.UTC)
 

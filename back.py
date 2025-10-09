@@ -4,7 +4,6 @@ import time
 import datetime
 from collections import deque
 from scipy.stats import zscore
-from binance.client import Client as BinanceClient
 from pybit.unified_trading import HTTP
 import telebot
 import config

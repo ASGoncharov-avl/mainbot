@@ -2,3 +2,5 @@ __pycache__/
 df.csv
 dftest.csv
 trades_complete.csv
+venv/
+config.py

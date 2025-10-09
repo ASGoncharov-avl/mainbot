@@ -3,7 +3,10 @@ import time
 import config
 from pybit.unified_trading import HTTP
 
-session = HTTP()
+session = HTTP(api_key=config.BYBIT_API_KEY,
+               api_secret = config.BYBIT_API_SECRET
+               )
+
 
 def fetch_klines_paged(symbol = config.symbol, interval=config.interval,  total_bars=config.total_bars):
 
@@ -38,3 +41,10 @@ def fetch_klines_paged(symbol = config.symbol, interval=config.interval,  total_
     df[['open','high','low','close','volume']] = df[['open','high','low','close', 'volume']].astype(float)
     df = df.drop_duplicates('timestamp').sort_values('timestamp').reset_index(drop=True)
     return df
+
+current_price = fetch_klines_paged(config.symbol, config.interval, 1).iloc[0]['open']
+balance = float(session.get_wallet_balance(
+    accountType="UNIFIED",
+    coin="USDT",)['result']['list'][0]["totalAvailableBalance"])
+
+TRADE_QTY = int(balance * 0.85 / current_price * 10)
