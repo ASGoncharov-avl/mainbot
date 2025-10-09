@@ -1,7 +1,3 @@
-TELEGRAM_CHAT_ID = "466722115"
-BYBIT_API_KEY = "qYpZktoxbd7gHbH0Tj"
-BYBIT_API_SECRET = "9pqK71CqxTq9AyykuYvCGZ0HUa8FCOjMCopz"
-token = '8181692335:AAFAElx4vDA3TWT-o9lJfLltvQhIPbd0ync'
 
 symbol = "DOGEUSDT"
 interval = 5

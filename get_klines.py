@@ -1,10 +1,11 @@
 import pandas as pd
 import time
 import config
+import config2
 from pybit.unified_trading import HTTP
 
-session = HTTP(api_key=config.BYBIT_API_KEY,
-               api_secret = config.BYBIT_API_SECRET
+session = HTTP(api_key=config2.BYBIT_API_KEY,
+               api_secret = config2.BYBIT_API_SECRET
                )
 
 
