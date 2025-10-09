@@ -1,4 +1,4 @@
-import config
+import config, config2
 from instruments import *
 import pandas as pd
 import numpy as np
@@ -13,14 +13,14 @@ from get_klines import fetch_klines_paged, TRADE_QTY
 
 # === НАСТРОЙКИ ===
 EXIT_AFTER_BARS = 3 #15 минут
-TELEGRAM_CHAT_ID = config.TELEGRAM_CHAT_ID #свой chat_id
+TELEGRAM_CHAT_ID = config2.TELEGRAM_CHAT_ID #свой chat_id
 offset = datetime.timezone(datetime.timedelta(hours=3))
 
 
 # === API ===
-bot = telebot.TeleBot(config.token) #tg bot
-BYBIT_API_KEY = config.BYBIT_API_KEY
-BYBIT_API_SECRET = config.BYBIT_API_SECRET
+bot = telebot.TeleBot(config2.token) #tg bot
+BYBIT_API_KEY = config2.BYBIT_API_KEY
+BYBIT_API_SECRET = config2.BYBIT_API_SECRET
 
 bybit = HTTP(api_key=BYBIT_API_KEY, api_secret=BYBIT_API_SECRET) #bybit init
 
