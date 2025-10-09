@@ -127,13 +127,11 @@ while True:
             df = compute_csc(df)
             df = compute_rsi(df)
             df['signal'] = [None] + [check_signal_row(df.iloc[i], df.iloc[i - 1]) for i in range(1, len(df))]
-            df[df['signal'] != None].tail(100).to_csv('df.csv', sep=';', index=False, mode='a', header=False)
-            # new_df.tail(1).to_csv('df.csv', sep=';', index=False, mode='a', header=False)
-            print(df.tail(3))
+            
             latest = df.iloc[-2]
             signal = latest['signal']
             
-            bot.send_message(TELEGRAM_CHAT_ID, f"{df.tail(2)[['timestamp', 'CSI']]}: {signal}")
+            bot.send_message(TELEGRAM_CHAT_ID, f"{df['timestamp']}: {signal}")
             print(f"{df.iloc[-1]['timestamp']}: {signal}")
 
             if signal in ['buy', 'sell'] and can_enter_again(signal):
