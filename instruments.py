@@ -64,3 +64,7 @@ def get_csi(df):
     atr = tr.rolling(14).mean().bfill()
     df['CSI'] = direction * (0.5 * body_ratio + 0.3 * vol_score + 0.2 * range_z) / atr
     return df
+
+def ema(df, N):
+    df['EMA{N}'] = df['close'].ewm(span=N)
+    return df
