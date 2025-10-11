@@ -6,7 +6,7 @@ import numpy as np
 
 
 def compute_bollinger(df):
-    df = fetch_klines_paged(total_bars=config.total_bars)
+    # df = fetch_klines_paged(total_bars=config.total_bars)
     df['ma'] = df['close'].rolling(config.bb_period).mean()
     df['std'] = df['close'].rolling(config.bb_period).std()
     df['upper'] = df['ma'] + config.bb_std * df['std']
