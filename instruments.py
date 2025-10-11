@@ -6,7 +6,7 @@ import numpy as np
 
 
 def compute_bollinger(df):
-    df = fetch_klines_paged(total_bars=config.total_bars)
+    # df = fetch_klines_paged(total_bars=config.total_bars)
     df['ma'] = df['close'].rolling(config.bb_period).mean()
     df['std'] = df['close'].rolling(config.bb_period).std()
     df['upper'] = df['ma'] + config.bb_std * df['std']
@@ -68,3 +68,7 @@ def get_csi(df):
 def ema(df, N):
     df[f'ema{N}'] = df['close'].ewm(span=N).mean()
     return df
+
+df = fetch_klines_paged()
+compute_bollinger(df)
+print(df.tail(5))
