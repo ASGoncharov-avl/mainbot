@@ -13,7 +13,7 @@ def compute_bollinger(df):
     df['lower'] = df['ma'] - config.bb_std * df['std']
     return df
 
-def compute_rsi(df, period=450):
+def compute_rsi(df, period=24):
     delta = df['close'].diff()
     gain = delta.clip(lower=0)
     loss = -delta.clip(upper=0)
@@ -66,5 +66,5 @@ def get_csi(df):
     return df
 
 def ema(df, N):
-    df['EMA{N}'] = df['close'].ewm(span=N)
+    df[f'ema{N}'] = df['close'].ewm(span=N).mean()
     return df
