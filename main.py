@@ -116,11 +116,9 @@ while True:
             new_df = get_last_closed_candle()
             if new_df is None:
                 continue
-            df = pd.concat([df, new_df.tail(1)]).drop_duplicates('timestamp').reset_index(drop=True)
-            # print(df.tail(3))
+            df = pd.concat([df, new_df.tail(1)]).drop_duplicates('timestamp').reset_index(drop = True)
             if len(df) > config.total_bars:
                 df = df.tail(config.total_bars)
-            # print(df.tail(3))
        
             df = compute_bollinger(df)
             df = get_csi(df)
@@ -130,9 +128,10 @@ while True:
             
             latest = df.iloc[-2]
             signal = latest['signal']
+            # df[['timestamp','signal']].to_csv('signal.csv', sep=';', index=False)
             
             bot.send_message(TELEGRAM_CHAT_ID, f"{df.iloc[-1]['timestamp']}: {signal}")
-            print(f"{df.iloc[-1]['timestamp']}: {signal}")
+            print(f"{df.iloc[-2]['timestamp']}: {signal}")
 
             if signal in ['buy', 'sell'] and can_enter_again(signal):
                 entry_price = latest['close']
