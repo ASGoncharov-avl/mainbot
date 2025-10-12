@@ -125,9 +125,10 @@ while True:
             print(f"Полностью рассчитанный DF{df.tail(3)}")
             latest = df.iloc[-1]
             signal = latest['signal']
+            cluster_id = latest['cluster_id']
             # df[['timestamp','signal']].to_csv('signal.csv', sep=';', index=False)
             
-            bot.send_message(TELEGRAM_CHAT_ID, f"{df.iloc[-1]['timestamp']}: {signal}")
+            bot.send_message(TELEGRAM_CHAT_ID, f"{df.iloc[-1]['timestamp']}: {signal}; {cluster_id}")
             print(f"{df.iloc[-2]['timestamp']}: {signal}")
 
             if signal in ['buy', 'sell'] and can_enter_again(signal):

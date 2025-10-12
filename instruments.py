@@ -14,7 +14,7 @@ def compute_bollinger(df):
     df['lower'] = df['ma'] - config.bb_std * df['std']
     return df
 
-def compute_rsi(df, period=24):
+def compute_rsi(df, period=450):
     delta = df['close'].diff()
     gain = delta.clip(lower=0)
     loss = -delta.clip(upper=0)
