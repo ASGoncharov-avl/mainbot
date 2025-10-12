@@ -9,4 +9,4 @@ min_cluster = 3
 bull_quant = 0.75
 bear_quant = 0.25
 rsi = 60
-total_bars = 8640
+total_bars = 10000

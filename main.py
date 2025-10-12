@@ -102,7 +102,6 @@ bot.send_message(TELEGRAM_CHAT_ID, "📈 Бот запущен")
 print("Бот запущен")
 df = fetch_klines_paged()
 df = df.iloc[:-1]
-# print(df.tail(3))
 last_checked_minute = None
 
 while True:
@@ -116,17 +115,15 @@ while True:
             new_df = get_last_closed_candle()
             if new_df is None:
                 continue
-            df = pd.concat([df, new_df.tail(1)]).drop_duplicates('timestamp').reset_index(drop = True)
-            if len(df) > config.total_bars:
-                df = df.tail(config.total_bars)
-       
+            df = pd.concat([df, new_df.tail(1)], ignore_index=True).drop_duplicates('timestamp')
+            df = df.tail(config.total_bars)
             df = compute_bollinger(df)
             df = get_csi(df)
             df = compute_csc(df)
             df = compute_rsi(df)
             df['signal'] = [None] + [check_signal_row(df.iloc[i], df.iloc[i - 1]) for i in range(1, len(df))]
-            
-            latest = df.iloc[-2]
+            print(f"Полностью рассчитанный DF{df.tail(3)}")
+            latest = df.iloc[-1]
             signal = latest['signal']
             # df[['timestamp','signal']].to_csv('signal.csv', sep=';', index=False)
             
