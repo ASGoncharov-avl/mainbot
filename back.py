@@ -46,7 +46,7 @@ if __name__ == '__main__':
     for i in range(1, len(df)):
         signals.append(check_signal_row(df.iloc[i], df.iloc[i - 1]))
     df['signal'] = signals
-    df.tail(5).to_csv('dftest.csv', sep=';', index=False, mode='a')
+    # df.to_csv('dftest.csv', sep=';', index=False)
     
     in_position = False
     entry_price = None
@@ -85,7 +85,7 @@ if __name__ == '__main__':
                 pnl = (
                     (exit_price - entry_price*1.002) / entry_price * 100
                     if position_type == 'long'
-                    else (entry_price - exit_price)*1.002 / entry_price * 100
+                    else (entry_price - exit_price*1.002) / entry_price * 100
                 )
                 completed_trades.append({
                     'entry_time': df.iloc[entry_index]['timestamp'],
@@ -103,7 +103,7 @@ if __name__ == '__main__':
     trades_df.to_csv('trades_complete.csv', sep=';', index=False)
 
     print("Последние сделки:")
-    print(trades_df.tail(10))
+    print(trades_df.tail(5))
 
     total_pnl = trades_df['pnl_%'].sum()
     print(f"\nОбщий PnL по стратегии: {total_pnl:.2f}%")

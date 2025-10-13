@@ -28,11 +28,13 @@ entry_history = deque(maxlen=100)
 open_positions = []
 
 def get_last_closed_candle():
-    df = fetch_klines_paged(total_bars = 5)
-    last_candle = df.iloc[-2]  # предпоследняя — она закрыта
+    df = fetch_klines_paged(total_bars = 3)
+    df = df.iloc[:-1]
+    
+    last_candle = df.tail(1)  # предпоследняя — она закрыта
     now = datetime.datetime.now(datetime.UTC)
-    if (now - last_candle['timestamp'].to_pydatetime()).total_seconds() >= 300:
-        return last_candle.to_frame().T
+    if (now - last_candle.iloc[-1]['timestamp'].to_pydatetime()).total_seconds() >= config.interval * 60:
+        return last_candle
     else:
         print("⏳ Свеча ещё не закрыта. Пропускаем.")
         return None
@@ -94,20 +96,20 @@ def close_position(symbol, position_type, qty):
 
 def can_enter_again(signal_type):
     now = datetime.datetime.now(datetime.UTC)
-    cooldown = 5 * 60
+    cooldown = 1 * 60
     return not any((now - t).total_seconds() < cooldown and s == signal_type for t, s in entry_history)
 
 
 bot.send_message(TELEGRAM_CHAT_ID, "📈 Бот запущен")
 print("Бот запущен")
 df = fetch_klines_paged()
-df = df.iloc[:-1]
+# df = df.iloc[:-1]
 last_checked_minute = None
 
 while True:
-    try:
+    # try:
         now = datetime.datetime.now()
-        if now.minute % 5 == 0 and now.second < 10:
+        if now.minute % 1 == 0 and now.second < 10:
             if last_checked_minute == now.minute:
                 time.sleep(0.2)
                 continue
@@ -115,21 +117,21 @@ while True:
             new_df = get_last_closed_candle()
             if new_df is None:
                 continue
-            df = pd.concat([df, new_df.tail(1)], ignore_index=True).drop_duplicates('timestamp')
+            df = pd.concat([df, new_df], ignore_index=True).drop_duplicates('timestamp')
             df = df.tail(config.total_bars)
+            
             df = compute_bollinger(df)
+            df = compute_rsi(df)
             df = get_csi(df)
             df = compute_csc(df)
-            df = compute_rsi(df)
+            
             df['signal'] = [None] + [check_signal_row(df.iloc[i], df.iloc[i - 1]) for i in range(1, len(df))]
-            print(f"Полностью рассчитанный DF{df.tail(3)}")
             latest = df.iloc[-1]
             signal = latest['signal']
             cluster_id = latest['cluster_id']
-            # df[['timestamp','signal']].to_csv('signal.csv', sep=';', index=False)
             
-            bot.send_message(TELEGRAM_CHAT_ID, f"{df.iloc[-1]['timestamp']}: {signal}; {cluster_id}")
-            print(f"{df.iloc[-2]['timestamp']}: {signal}")
+            bot.send_message(TELEGRAM_CHAT_ID, f"{df.iloc[-1]['timestamp']}: {signal}, {cluster_id}")
+            print(f"{df.iloc[-1]['timestamp']}: {signal}")
 
             if signal in ['buy', 'sell'] and can_enter_again(signal):
                 entry_price = latest['close']
@@ -190,8 +192,8 @@ while True:
                 if p in open_positions:
                     open_positions.remove(p)
 
-    except Exception as e:
-        bot.send_message(TELEGRAM_CHAT_ID, f"❗ Ошибка: {e}")
-        print(e)
+    # except Exception as e:
+    #     bot.send_message(TELEGRAM_CHAT_ID, f"❗ Ошибка: {e}")
+    #     print(e)
 
-    time.sleep(3)
+        time.sleep(3)

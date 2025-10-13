@@ -3,11 +3,12 @@ import config
 from scipy.stats import zscore
 import pandas as pd
 import numpy as np
+import datetime
 
 
 def compute_bollinger(df):
-    df = fetch_klines_paged(total_bars=config.total_bars)
-    df = df.iloc[:-1]
+    # df = fetch_klines_paged(total_bars=config.total_bars)
+    # df = df.iloc[:-1]
     df['ma'] = df['close'].rolling(config.bb_period).mean()
     df['std'] = df['close'].rolling(config.bb_period).std()
     df['upper'] = df['ma'] + config.bb_std * df['std']
@@ -29,12 +30,13 @@ def compute_csc(df):
     sub = df.tail(min(config.total_bars, len(df)))
     bull_thr = sub['CSI'].quantile(config.bull_quant)
     bear_thr = sub['CSI'].quantile(config.bear_quant)
+    print(bull_thr, bear_thr)
 
     df['sentiment'] = np.where(df['CSI'] >= bull_thr, 'bull', 
                         np.where(df['CSI'] <= bear_thr, 'bear', 'neutral'))
     df['cluster_id'] = pd.Series(dtype='object')
     curr_type, curr_start, length = None, None, 0
-    
+
     for i, s in df['sentiment'].items():
         if s == curr_type and s in ['bull','bear']:
             length += 1
@@ -71,3 +73,29 @@ def ema(df, N):
     df[f'ema{N}'] = df['close'].ewm(span=N).mean()
     return df
 
+# df = fetch_klines_paged(total_bars=100)
+# df = df.iloc[:-1]
+
+# def get_last_closed_candle():
+#     df = fetch_klines_paged(total_bars = 5)
+#     last_candle = df.iloc[-2]  # предпоследняя — она закрыта
+#     print(last_candle)
+#     now = datetime.datetime.now(datetime.UTC)
+#     if (now - last_candle['timestamp'].to_pydatetime()).total_seconds() >= config.interval * 60:
+#         return last_candle.to_frame()
+#     else:
+#         print("⏳ Свеча ещё не закрыта. Пропускаем.")
+#         return None
+    
+# new_df = get_last_closed_candle()
+
+# # df = pd.concat([df, new_df.tail(1)], ignore_index=True, join="inner").drop_duplicates('timestamp')
+# df.update(new_df)
+# print(df)
+# print(type(df.iloc[0]['open']))
+# df = compute_bollinger(df)
+# df = get_csi(df)
+# df = compute_csc(df)
+# df = compute_rsi(df)
+
+# # print (df)
