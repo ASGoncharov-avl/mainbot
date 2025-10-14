@@ -107,7 +107,7 @@ df = fetch_klines_paged()
 last_checked_minute = None
 
 while True:
-    # try:
+    try:
         now = datetime.datetime.now()
         if now.minute % config.interval == 0 and now.second < 10:
             if last_checked_minute == now.minute:
@@ -193,8 +193,8 @@ while True:
                 if p in open_positions:
                     open_positions.remove(p)
 
-    # except Exception as e:
-    #     bot.send_message(TELEGRAM_CHAT_ID, f"❗ Ошибка: {e}")
-    #     print(e)
+    except Exception as e:
+        bot.send_message(TELEGRAM_CHAT_ID, f"❗ Ошибка: {e}")
+        print(e)
 
         time.sleep(3)
