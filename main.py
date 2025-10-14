@@ -96,7 +96,7 @@ def close_position(symbol, position_type, qty):
 
 def can_enter_again(signal_type):
     now = datetime.datetime.now(datetime.UTC)
-    cooldown = 1 * 60
+    cooldown = config.interval * 60
     return not any((now - t).total_seconds() < cooldown and s == signal_type for t, s in entry_history)
 
 
@@ -109,7 +109,7 @@ last_checked_minute = None
 while True:
     # try:
         now = datetime.datetime.now()
-        if now.minute % 1 == 0 and now.second < 10:
+        if now.minute % config.interval == 0 and now.second < 10:
             if last_checked_minute == now.minute:
                 time.sleep(0.2)
                 continue
@@ -131,7 +131,8 @@ while True:
             cluster_id = latest['cluster_id']
             
             bot.send_message(TELEGRAM_CHAT_ID, f"{df.iloc[-1]['timestamp']}: {signal}, {cluster_id}")
-            print(f"{df.iloc[-1]['timestamp']}: {signal}")
+            # print(f"{df.iloc[-1]['timestamp']}: {signal}")
+            print(latest.to_frame().T)
 
             if signal in ['buy', 'sell'] and can_enter_again(signal):
                 entry_price = latest['close']

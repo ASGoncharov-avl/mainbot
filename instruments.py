@@ -7,8 +7,6 @@ import datetime
 
 
 def compute_bollinger(df):
-    # df = fetch_klines_paged(total_bars=config.total_bars)
-    # df = df.iloc[:-1]
     df['ma'] = df['close'].rolling(config.bb_period).mean()
     df['std'] = df['close'].rolling(config.bb_period).std()
     df['upper'] = df['ma'] + config.bb_std * df['std']
@@ -30,7 +28,6 @@ def compute_csc(df):
     sub = df.tail(min(config.total_bars, len(df)))
     bull_thr = sub['CSI'].quantile(config.bull_quant)
     bear_thr = sub['CSI'].quantile(config.bear_quant)
-    print(bull_thr, bear_thr)
 
     df['sentiment'] = np.where(df['CSI'] >= bull_thr, 'bull', 
                         np.where(df['CSI'] <= bear_thr, 'bear', 'neutral'))
