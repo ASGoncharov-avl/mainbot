@@ -79,6 +79,7 @@ def place_order(symbol, side, qty, stop_price):
         bot.send_message(TELEGRAM_CHAT_ID, f"✅ Открыта {side.upper()} позиция на {qty} ETH")
     except Exception as e:
         print("Ошибка ордера:", e)
+place_order("DOGEUSDT", 'buy', 180, 0.187)
 
 def close_position(symbol, position_type, qty):
     try:
