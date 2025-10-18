@@ -43,9 +43,10 @@ def fetch_klines_paged(symbol = config.symbol, interval=config.interval,  total_
     df = df.drop_duplicates('timestamp').sort_values('timestamp').reset_index(drop=True)
     return df
 
-current_price = fetch_klines_paged(config.symbol, config.interval, 1).iloc[0]['open']
+current_price = fetch_klines_paged(config.symbol, config.interval, 1).iloc[-1]['open']
+
 balance = float(session.get_wallet_balance(
     accountType="UNIFIED",
     coin="USDT",)['result']['list'][0]["totalAvailableBalance"])
 
-TRADE_QTY = int(balance * 0.85 / current_price * 10)
+TRADE_QTY = int(balance * 0.4 / current_price * 10)

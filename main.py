@@ -8,7 +8,6 @@ from collections import deque
 from scipy.stats import zscore
 from pybit.unified_trading import HTTP
 import telebot
-import pytz
 from get_klines import fetch_klines_paged, TRADE_QTY
 
 # === НАСТРОЙКИ ===
@@ -22,7 +21,9 @@ bot = telebot.TeleBot(config2.token) #tg bot
 BYBIT_API_KEY = config2.BYBIT_API_KEY
 BYBIT_API_SECRET = config2.BYBIT_API_SECRET
 
-bybit = HTTP(api_key=BYBIT_API_KEY, api_secret=BYBIT_API_SECRET) #bybit init
+bybit = HTTP ( api_key=BYBIT_API_KEY, 
+              api_secret=BYBIT_API_SECRET, 
+              ) 
 
 entry_history = deque(maxlen=100)
 open_positions = []
@@ -74,7 +75,7 @@ def place_order(symbol, side, qty, stop_price):
             order_type="Market",
             qty=qty,
             time_in_force="GoodTillCancel",
-            stopLoss=round(stop_price, 2)
+            stopLoss=round(stop_price, 5)
         )
         bot.send_message(TELEGRAM_CHAT_ID, f"✅ Открыта {side.upper()} позиция на {qty} ETH")
     except Exception as e:
@@ -99,11 +100,10 @@ def can_enter_again(signal_type):
     cooldown = config.interval * 60
     return not any((now - t).total_seconds() < cooldown and s == signal_type for t, s in entry_history)
 
-
 bot.send_message(TELEGRAM_CHAT_ID, "📈 Бот запущен")
 print("Бот запущен")
 df = fetch_klines_paged()
-# df = df.iloc[:-1]
+df = df.iloc[:-1]
 last_checked_minute = None
 
 while True:
@@ -131,9 +131,6 @@ while True:
             cluster_id = latest['cluster_id']
             
             bot.send_message(TELEGRAM_CHAT_ID, f"{df.iloc[-1]['timestamp']}: {signal}, {cluster_id}")
-            # print(f"{df.iloc[-1]['timestamp']}: {signal}")
-            print(latest.to_frame().T)
-
             if signal in ['buy', 'sell'] and can_enter_again(signal):
                 entry_price = latest['close']
                 stop_price = entry_price * (1 - config.STOP_LOSS_PCT) if signal == 'buy' else entry_price * (1 + config.STOP_LOSS_PCT)
@@ -163,7 +160,7 @@ while True:
                     (pos['type'] == 'long' and current_price <= pos['stop_price']) or
                     (pos['type'] == 'short' and current_price >= pos['stop_price'])
                 )
-
+                
                 if hit_stop or elapsed >= (EXIT_AFTER_BARS * 5):
                     # Проверка: позиция ещё существует на бирже
                     if position_size > 0:
