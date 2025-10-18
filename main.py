@@ -77,9 +77,10 @@ def place_order(symbol, side, qty, stop_price):
             time_in_force="GoodTillCancel",
             stopLoss=round(stop_price, 5)
         )
-        bot.send_message(TELEGRAM_CHAT_ID, f"✅ Открыта {side.upper()} позиция на {qty} ETH")
+        bot.send_message(TELEGRAM_CHAT_ID, f"✅ Открыта {side.upper()} позиция на {qty} {config.symbol}")
     except Exception as e:
         print("Ошибка ордера:", e)
+
 
 def close_position(symbol, position_type, qty):
     try:
