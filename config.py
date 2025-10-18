@@ -1,4 +1,3 @@
-
 symbol = "DOGEUSDT"
 interval = 5 # минуты
 bb_period = 46
