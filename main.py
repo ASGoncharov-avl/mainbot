@@ -131,7 +131,6 @@ while True:
             signal = latest['signal']
             cluster_id = latest['cluster_id']
             
-            bot.send_message(TELEGRAM_CHAT_ID, f"{df.iloc[-1]['timestamp']}: {signal}, {cluster_id}")
             if signal in ['buy', 'sell'] and can_enter_again(signal):
                 entry_price = latest['close']
                 stop_price = entry_price * (1 - config.STOP_LOSS_PCT) if signal == 'buy' else entry_price * (1 + config.STOP_LOSS_PCT)
