@@ -162,7 +162,7 @@ while True:
                     (pos['type'] == 'short' and current_price >= pos['stop_price'])
                 )
                 
-                if hit_stop or elapsed >= (EXIT_AFTER_BARS * 5):
+                if hit_stop or elapsed >= (EXIT_AFTER_BARS * 5 * 60):
                     # Проверка: позиция ещё существует на бирже
                     if position_size > 0:
                         exit_price = pos['stop_price'] if hit_stop else current_price
