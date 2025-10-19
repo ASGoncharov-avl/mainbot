@@ -166,9 +166,9 @@ while True:
                     if position_size > 0:
                         exit_price = pos['stop_price'] if hit_stop else current_price
                         pnl = (
-                            (exit_price - pos['entry_price']) / pos['entry_price'] * 100
+                            (exit_price * 0.999 - pos['entry_price'] * 1.001) / pos['entry_price'] * 100
                             if pos['type'] == 'long'
-                            else (pos['entry_price'] - exit_price) / pos['entry_price'] * 100
+                            else (pos['entry_price'] * 0.999 - exit_price * 1.001) / pos['entry_price'] * 100
                         )
                         reason = "стоп-лосс" if hit_stop else "по времени"
                         close_position(config.symbol, pos['type'], TRADE_QTY)
