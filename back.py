@@ -5,7 +5,6 @@ import datetime
 from collections import deque
 from scipy.stats import zscore
 from pybit.unified_trading import HTTP
-import telebot
 import config
 from instruments import *
 from get_klines import fetch_klines_paged
@@ -72,7 +71,7 @@ if __name__ == '__main__':
 
         # === Выход из позиции ===
         elif in_position:
-            exit_index = entry_index + 15
+            exit_index = entry_index + 3
             exit_row = df.iloc[i]
             low, high = exit_row['low'], exit_row['high']
             hit_stop = (
