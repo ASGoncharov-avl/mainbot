@@ -82,9 +82,9 @@ if __name__ == '__main__':
             if hit_stop or i >= exit_index:
                 exit_price = stop_price if hit_stop else exit_row['close']
                 pnl = (
-                    (exit_price - entry_price*1.002) / entry_price * 100
+                    (exit_price * 0.999 - entry_price * 1.001) / entry_price * 100
                     if position_type == 'long'
-                    else (entry_price - exit_price*1.002) / entry_price * 100
+                    else (entry_price * 0.999 - exit_price * 1.001) / entry_price * 100
                 )
                 completed_trades.append({
                     'entry_time': df.iloc[entry_index]['timestamp'],
