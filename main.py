@@ -1,4 +1,5 @@
-import config, config2
+import config
+import config3 as config2
 from instruments import *
 import pandas as pd
 import numpy as np
