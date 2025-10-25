@@ -1,7 +1,7 @@
 import pandas as pd
 import time
 import config
-import config2
+import config3 as config2
 from pybit.unified_trading import HTTP
 
 session = HTTP(api_key=config2.BYBIT_API_KEY,
