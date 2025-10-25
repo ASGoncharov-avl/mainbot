@@ -29,6 +29,7 @@ bybit = HTTP (demo = True,
 
 entry_history = deque(maxlen=100)
 open_positions = []
+delta = datetime.timedelta(hours = 3)
 
 def get_last_closed_candle():
     df = fetch_klines_paged(total_bars = 3)
@@ -132,7 +133,7 @@ while True:
             latest = df.iloc[-1]
             signal = latest['signal']
             cluster_id = latest['cluster_id']
-            bot.send_message(TELEGRAM_CHAT_ID, f"{df.iloc[-1]['timestamp']} {signal}")
+            bot.send_message(TELEGRAM_CHAT_ID, f"{(df.iloc[-1]['timestamp'] + delta).strftime("%H:%M")} {signal}")
             if signal in ['buy', 'sell'] and can_enter_again(signal):
                 entry_price = latest['close']
                 stop_price = entry_price * (1 - config.STOP_LOSS_PCT) if signal == 'buy' else entry_price * (1 + config.STOP_LOSS_PCT)
