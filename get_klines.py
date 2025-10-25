@@ -4,7 +4,8 @@ import config
 import config3 as config2
 from pybit.unified_trading import HTTP
 
-session = HTTP(api_key=config2.BYBIT_API_KEY,
+session = HTTP(demo = True,
+               api_key=config2.BYBIT_API_KEY,
                api_secret = config2.BYBIT_API_SECRET
                )
 
