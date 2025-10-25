@@ -2,10 +2,10 @@ symbol = "DOGEUSDT"
 interval = 5 # минуты
 bb_period = 48
 bb_std = 0.1
-STOP_LOSS_PCT = 0.02
+STOP_LOSS_PCT = 0.008
 
 min_cluster = 3
-bull_quant = 0.52
+bull_quant = 0.53
 bear_quant = 0.47
 rsi = 58
 period = 30 # период расчетов в днях

@@ -132,8 +132,8 @@ while True:
             df['signal'] = [None] + [check_signal_row(df.iloc[i], df.iloc[i - 1]) for i in range(1, len(df))]
             latest = df.iloc[-1]
             signal = latest['signal']
-            cluster_id = latest['cluster_id']
-            bot.send_message(TELEGRAM_CHAT_ID, f"{(df.iloc[-1]['timestamp'] + delta).strftime("%H:%M")} {signal}")
+            if latest['cluster_id'] : cluster_id = latest['cluster_id']
+            bot.send_message(TELEGRAM_CHAT_ID, f"{(df.iloc[-1]['timestamp'] + delta).strftime("%H:%M")}, {cluster_id[:3]} {signal}")
             if signal in ['buy', 'sell'] and can_enter_again(signal):
                 entry_price = latest['close']
                 stop_price = entry_price * (1 - config.STOP_LOSS_PCT) if signal == 'buy' else entry_price * (1 + config.STOP_LOSS_PCT)
