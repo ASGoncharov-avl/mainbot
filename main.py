@@ -22,7 +22,8 @@ bot = telebot.TeleBot(config2.token) #tg bot
 BYBIT_API_KEY = config2.BYBIT_API_KEY
 BYBIT_API_SECRET = config2.BYBIT_API_SECRET
 
-bybit = HTTP ( api_key=BYBIT_API_KEY, 
+bybit = HTTP (demo = True,
+              api_key=BYBIT_API_KEY, 
               api_secret=BYBIT_API_SECRET, 
               ) 
 
