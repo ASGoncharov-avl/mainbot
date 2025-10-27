@@ -1,7 +1,7 @@
 symbol = "DOGEUSDT"
 interval = 5 # минуты
 bb_period = 48
-bb_std = 0.1
+bb_std = 0.2
 STOP_LOSS_PCT = 0.008
 
 min_cluster = 3

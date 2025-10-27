@@ -111,7 +111,7 @@ df = df.iloc[:-1]
 last_checked_minute = None
 
 while True:
-    try:
+    # try:
         now = datetime.datetime.now()
         if now.minute % config.interval == 0 and now.second < 10:
             if last_checked_minute == now.minute:
@@ -125,15 +125,22 @@ while True:
             df = df.tail(config.total_bars)
             
             df = compute_bollinger(df)
-            df = compute_rsi(df)
             df = get_csi(df)
             df = compute_csc(df)
+            df = compute_rsi(df)
             
+            # df.loc[-1, 'signal'] = check_signal_row(df.iloc[-2], df.iloc[-1])
             df['signal'] = [None] + [check_signal_row(df.iloc[i], df.iloc[i - 1]) for i in range(1, len(df))]
             latest = df.iloc[-1]
             signal = latest['signal']
-            if latest['cluster_id'] : cluster_id = latest['cluster_id']
-            bot.send_message(TELEGRAM_CHAT_ID, f"{(df.iloc[-1]['timestamp'] + delta).strftime("%H:%M")}, {cluster_id[:3]} {signal}")
+            if type(latest['cluster_id']) == type(float('nan')) : 
+                cluster_id = 'None'
+            else :
+                cluster_id = latest['cluster_id']
+                
+            bot.send_message(TELEGRAM_CHAT_ID, f"{(df.iloc[-1]['timestamp'] + delta).strftime('%H:%M')}; {cluster_id[:4]}; {signal}")
+            latest.to_frame().T.to_csv('mainbot.csv', sep=";", mode='a', index = False, header = False)
+            
             if signal in ['buy', 'sell'] and can_enter_again(signal):
                 entry_price = latest['close']
                 stop_price = entry_price * (1 - config.STOP_LOSS_PCT) if signal == 'buy' else entry_price * (1 + config.STOP_LOSS_PCT)
@@ -153,7 +160,6 @@ while True:
             updated_positions = []
             for pos in open_positions[:]:
                 entry_time = pos['entry_time']
-                print(entry_time)
                 elapsed = (datetime.datetime.now(datetime.UTC) - entry_time).total_seconds()
                 position_data = bybit.get_positions(category="linear", symbol=config.symbol)["result"]["list"]
                 position_size = float(position_data[0]['size']) if position_data else 0
@@ -193,8 +199,8 @@ while True:
                 if p in open_positions:
                     open_positions.remove(p)
 
-    except Exception as e:
-        bot.send_message(TELEGRAM_CHAT_ID, f"❗ Ошибка: {e}")
-        print(e)
+    # except Exception as e:
+    #     bot.send_message(TELEGRAM_CHAT_ID, f"❗ Ошибка: {e}")
+    #     print(e)
 
         time.sleep(3)

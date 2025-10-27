@@ -45,7 +45,7 @@ if __name__ == '__main__':
     for i in range(1, len(df)):
         signals.append(check_signal_row(df.iloc[i], df.iloc[i - 1]))
     df['signal'] = signals
-    # df.to_csv('dftest.csv', sep=';', index=False)
+    df.iloc[:-1].tail(10).to_csv('dftest.csv', sep=';', index=False)
     
     in_position = False
     entry_price = None
