@@ -1,5 +1,6 @@
 import config
 import config3 as config2
+from func import *
 from instruments import *
 import pandas as pd
 import numpy as np
@@ -30,79 +31,6 @@ bybit = HTTP (demo = True,
 entry_history = deque(maxlen=100)
 open_positions = []
 delta = datetime.timedelta(hours = 3)
-
-def get_last_closed_candle():
-    df = fetch_klines_paged(total_bars = 3)
-    df = df.iloc[:-1]
-    
-    last_candle = df.tail(1)  # предпоследняя — она закрыта
-    now = datetime.datetime.now(datetime.UTC)
-    if (now - last_candle.iloc[-1]['timestamp'].to_pydatetime()).total_seconds() >= config.interval * 60:
-        return last_candle
-    else:
-        print("⏳ Свеча ещё не закрыта. Пропускаем.")
-        return None
-    
-
-def check_signal_row(row, prev_row):
-    if np.isnan(row['lower']) or np.isnan(prev_row['CSI']) or np.isnan(row['CSI']):
-        return None
-    cluster = row['cluster_id']
-    if not isinstance(cluster, str):
-        return None
-
-    long_cond = (
-        row['close'] < row['lower'] and
-        row['CSI'] > 0 and row['CSI'] > prev_row['CSI'] and
-        cluster.startswith('bull') and row['RSI'] < config.rsi
-    )
-    short_cond = (
-        row['close'] > row['upper'] and
-        row['CSI'] < 0 and row['CSI'] < prev_row['CSI'] and
-        cluster.startswith('bear') and row['RSI'] > (100 - config.rsi)
-    )
-
-    if long_cond:
-        return 'buy'
-    elif short_cond:
-        return 'sell'
-    return None
-
-
-def place_order(symbol, side, qty, stop_price):
-    try:
-        bybit.place_order(
-            category="linear",
-            symbol=symbol,
-            side="Buy" if side == "long" else "Sell",
-            order_type="Market",
-            qty=qty,
-            time_in_force="GoodTillCancel",
-            stopLoss=round(stop_price, 5)
-        )
-        bot.send_message(TELEGRAM_CHAT_ID, f"✅ Открыта {side.upper()} позиция на {qty} {config.symbol}")
-    except Exception as e:
-        print("Ошибка ордера:", e)
-
-
-def close_position(symbol, position_type, qty):
-    try:
-        bybit.place_order(
-            category="linear",
-            symbol=symbol,
-            side="Sell" if position_type == "long" else "Buy",
-            order_type="Market",
-            qty=qty,
-            time_in_force="GoodTillCancel"
-        )
-        bot.send_message(TELEGRAM_CHAT_ID, f"🔻 Закрыта {position_type.upper()} позиция ({qty} {symbol})")
-    except Exception as e:
-        bot.send_message(TELEGRAM_CHAT_ID, f"❗ Ошибка при закрытии позиции: {e}")
-
-def can_enter_again(signal_type):
-    now = datetime.datetime.now(datetime.UTC)
-    cooldown = config.interval * 60
-    return not any((now - t).total_seconds() < cooldown and s == signal_type for t, s in entry_history)
 
 bot.send_message(TELEGRAM_CHAT_ID, "📈 Бот запущен")
 print("Бот запущен")
@@ -141,13 +69,13 @@ while True:
             bot.send_message(TELEGRAM_CHAT_ID, f"{(df.iloc[-1]['timestamp'] + delta).strftime('%H:%M')}; {cluster_id[:4]}; {signal}")
             latest.to_frame().T.to_csv('mainbot.csv', sep=";", mode='a', index = False, header = False)
             
-            if signal in ['buy', 'sell'] and can_enter_again(signal):
+            if signal in ['buy', 'sell'] and can_enter_again(signal, entry_history):
                 entry_price = latest['close']
                 stop_price = entry_price * (1 - config.STOP_LOSS_PCT) if signal == 'buy' else entry_price * (1 + config.STOP_LOSS_PCT)
                 position_type = 'long' if signal == 'buy' else 'short'
                 entry_time = datetime.datetime.now(datetime.UTC)
 
-                place_order(config.symbol, position_type, TRADE_QTY, stop_price)
+                place_order(config.symbol, position_type, TRADE_QTY, stop_price, bybit, bot)
                 entry_history.append((entry_time, signal))
                 open_positions.append({
                     'type': position_type,
@@ -170,7 +98,7 @@ while True:
                     (pos['type'] == 'short' and current_price >= pos['stop_price'])
                 )
                 
-                if hit_stop or elapsed >= (EXIT_AFTER_BARS * 5 * 60):
+                if hit_stop or elapsed >= (EXIT_AFTER_BARS * config.interval * 60):
                     # Проверка: позиция ещё существует на бирже
                     if position_size > 0:
                         exit_price = pos['stop_price'] if hit_stop else current_price
@@ -180,7 +108,7 @@ while True:
                             else (pos['entry_price'] * 0.999 - exit_price * 1.001) / pos['entry_price'] * 100
                         )
                         reason = "стоп-лосс" if hit_stop else "по времени"
-                        close_position(config.symbol, pos['type'], TRADE_QTY)
+                        close_position(config.symbol, pos['type'], TRADE_QTY, bybit, bot)
                         bot.send_message(
                             TELEGRAM_CHAT_ID,
                             f"❌ Закрытие позиции: {pos['type'].upper()} по {exit_price:.2f} ({reason})\nPnL: {pnl:.2f}%"

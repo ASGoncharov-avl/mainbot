@@ -1,39 +1,11 @@
 import pandas as pd
-import numpy as np
-import time
-import datetime
-from collections import deque
-from scipy.stats import zscore
+import matplotlib
+from func import check_signal_row
 from pybit.unified_trading import HTTP
 import config
 from instruments import *
 from get_klines import fetch_klines_paged
-# === НАСТРОЙКИ ===
         
-def check_signal_row(row, prev_row):
-    if np.isnan(row['lower']) or np.isnan(prev_row['CSI']) or np.isnan(row['CSI']):
-        return None
-    cluster = row['cluster_id']
-    if not isinstance(cluster, str):
-        return None
-
-    long_cond = (
-        row['close'] < row['lower'] and
-        row['CSI'] > 0 and row['CSI'] > prev_row['CSI'] and
-        cluster.startswith('bull') and row['RSI'] < config.rsi
-    )
-    short_cond = (
-        row['close'] > row['upper'] and
-        row['CSI'] < 0 and row['CSI'] < prev_row['CSI'] and
-        cluster.startswith('bear') and row['RSI'] > (100 - config.rsi)
-    )
-
-    if long_cond:
-        return 'buy'
-    elif short_cond:
-        return 'sell'
-    return None
-    
 if __name__ == '__main__':
     df = fetch_klines_paged(config.symbol, config.interval, config.total_bars)
     df = compute_bollinger(df)

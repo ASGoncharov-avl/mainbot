@@ -13,7 +13,7 @@ def compute_bollinger(df):
     df['lower'] = df['ma'] - config.bb_std * df['std']
     return df
 
-def compute_rsi(df, period=450):
+def compute_rsi(df, period=50):
     delta = df['close'].diff()
     gain = delta.clip(lower=0)
     loss = -delta.clip(upper=0)
@@ -33,7 +33,6 @@ def compute_csc(df):
                         np.where(df['CSI'] <= bear_thr, 'bear', 'neutral'))
     df['cluster_id'] = pd.Series(dtype='object')
     curr_type, curr_start, length = None, None, 0
-
     for i, s in df['sentiment'].items():
         if s == curr_type and s in ['bull','bear']:
             length += 1
@@ -44,8 +43,8 @@ def compute_csc(df):
                 curr_type, curr_start, length = s, i, 1
             else:
                 curr_type, length = None, 0
-    if curr_type in ['bull','bear'] and length >= config.min_cluster:
-        df.loc[curr_start:df.index[-1], 'cluster_id'] = f"{curr_type}_{curr_start}"
+    # if curr_type in ['bull','bear'] and length >= config.min_cluster:
+    #     df.loc[curr_start:df.index[-1], 'cluster_id'] = f"{curr_type}_{curr_start}"
 
     return df
 
