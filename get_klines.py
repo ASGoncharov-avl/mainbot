@@ -50,4 +50,4 @@ balance = float(session.get_wallet_balance(
     accountType="UNIFIED",
     coin="USDT",)['result']['list'][0]["totalAvailableBalance"])
 
-TRADE_QTY = int(balance * 0.8 / current_price * 5)
+TRADE_QTY = int(balance * 0.8 / current_price * 10)
