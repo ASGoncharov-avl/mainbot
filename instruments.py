@@ -43,8 +43,8 @@ def compute_csc(df):
                 curr_type, curr_start, length = s, i, 1
             else:
                 curr_type, length = None, 0
-    # if curr_type in ['bull','bear'] and length >= config.min_cluster:
-    #     df.loc[curr_start:df.index[-1], 'cluster_id'] = f"{curr_type}_{curr_start}"
+    if curr_type in ['bull','bear'] and length >= config.min_cluster:
+        df.loc[curr_start:df.index[-1], 'cluster_id'] = f"{curr_type}_{curr_start}"
 
     return df
 
