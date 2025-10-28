@@ -58,7 +58,12 @@ while True:
             df = compute_rsi(df)
             
             # df.loc[-1, 'signal'] = check_signal_row(df.iloc[-2], df.iloc[-1])
-            df['signal'] = [None] + [check_signal_row(df.iloc[i], df.iloc[i - 1]) for i in range(1, len(df))]
+            # df['signal'] = [None] + [check_signal_row(df.iloc[i], df.iloc[i - 1]) for i in range(1, len(df))]
+            signals = [None]
+            for i in range(1, len(df)):
+                signals.append(check_signal_row(df.iloc[i], df.iloc[i - 1]))
+            df['signal'] = signals
+            # df.tail(50).to_csv('mainbot.csv', sep=';', index=False)
             latest = df.iloc[-1]
             signal = latest['signal']
             if type(latest['cluster_id']) == type(float('nan')) : 
@@ -67,7 +72,7 @@ while True:
                 cluster_id = latest['cluster_id']
                 
             bot.send_message(TELEGRAM_CHAT_ID, f"{(df.iloc[-1]['timestamp'] + delta).strftime('%H:%M')}; {cluster_id[:4]}; {signal}")
-            latest.to_frame().T.to_csv('mainbot.csv', sep=";", mode='a', index = False, header = False)
+            # latest.to_frame().T.to_csv('mainbot.csv', sep=";", mode='a', index = False, header = False)
             
             if signal in ['buy', 'sell'] and can_enter_again(signal, entry_history):
                 entry_price = latest['close']
