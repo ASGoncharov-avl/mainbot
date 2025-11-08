@@ -41,19 +41,32 @@ if __name__ == '__main__':
                 entry_price * (1 - config.STOP_LOSS_PCT) if position_type == 'long'
                 else entry_price * (1 + config.STOP_LOSS_PCT)
             )
+            take_profit = (
+                entry_price * (1 + config.tprofit) if position_type =='long'
+                else entry_price * (1- config.tprofit)
+            )
 
         # === Выход из позиции ===
         elif in_position:
-            exit_index = entry_index + 3
+            exit_index = entry_index + config.time_ex
             exit_row = df.iloc[i]
             low, high = exit_row['low'], exit_row['high']
             hit_stop = (
                 low <= stop_price if position_type == 'long'
                 else high >= stop_price
             )
+            tp = (
+                high >= take_profit if position_type == 'long'
+                else low <= take_profit
+            )
 
-            if hit_stop or i >= exit_index:
-                exit_price = stop_price if hit_stop else exit_row['close']
+            if hit_stop or tp:
+                if hit_stop : 
+                    exit_price = stop_price  
+                else:  
+                    exit_price = take_profit
+                # exit_row['close']
+                
                 pnl = (
                     (exit_price * 0.999 - entry_price * 1.001) / entry_price * 100
                     if position_type == 'long'
@@ -66,7 +79,7 @@ if __name__ == '__main__':
                     'entry_price': entry_price,
                     'exit_price': exit_price,
                     'pnl_%': pnl,
-                    'reason': 'stop_loss' if hit_stop else 'time_exit'
+                    'reason': 'stop_loss' if hit_stop else 'take_profit'
                 })
                 in_position = False
 

@@ -61,19 +61,19 @@ def place_order(symbol, side, qty, stop_price, bybit, bot):
 def check_signal_row(row, prev_row):
     if np.isnan(row['lower']) or np.isnan(prev_row['CSI']) or np.isnan(row['CSI']):
         return None
-    cluster = row['cluster_id']
+    cluster = prev_row['cluster_id']
     if not isinstance(cluster, str):
         return None
 
     long_cond = (
         row['close'] < row['lower'] and
         row['CSI'] > 0 and row['CSI'] > prev_row['CSI'] and
-        cluster.startswith('bull') and row['RSI'] < config.rsi
+        cluster.startswith('bear') and row['RSI'] < config.rsi
     )
     short_cond = (
         row['close'] > row['upper'] and
         row['CSI'] < 0 and row['CSI'] < prev_row['CSI'] and
-        cluster.startswith('bear') and row['RSI'] > (100 - config.rsi)
+        cluster.startswith('bull') and row['RSI'] > (100 - config.rsi)
     )
 
     if long_cond:
