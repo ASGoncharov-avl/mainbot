@@ -1,5 +1,4 @@
 import pandas as pd
-import matplotlib
 from func import check_signal_row
 import config
 from instruments import *
