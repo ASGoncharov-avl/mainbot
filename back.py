@@ -1,7 +1,6 @@
 import pandas as pd
 import matplotlib
 from func import check_signal_row
-from pybit.unified_trading import HTTP
 import config
 from instruments import *
 from get_klines import fetch_klines_paged
@@ -12,13 +11,13 @@ if __name__ == '__main__':
     df = compute_bollinger(df)
     df = get_csi(df)
     df = compute_csc(df)
-    df = compute_rsi(df)   
+    df = compute_rsi(df, 14)   
 
     signals = [None]
     for i in range(1, len(df)):
         signals.append(check_signal_row(df.iloc[i], df.iloc[i - 1]))
     df['signal'] = signals
-    df.tail(50).to_csv('dftest.csv', sep=';', index=False)
+    df.tail(150).to_csv('dftest.csv', sep=';', index=False)
     
     in_position = False
     entry_price = None
@@ -48,7 +47,7 @@ if __name__ == '__main__':
 
         # === Выход из позиции ===
         elif in_position:
-            exit_index = entry_index + config.time_ex
+            # exit_index = entry_index + config.time_ex
             exit_row = df.iloc[i]
             low, high = exit_row['low'], exit_row['high']
             hit_stop = (
@@ -59,14 +58,23 @@ if __name__ == '__main__':
                 high >= take_profit if position_type == 'long'
                 else low <= take_profit
             )
+            exit = (
+                signal == 'sell' if position_type == 'long'
+                else signal == 'buy'
+            )
 
-            if hit_stop or tp:
+            if hit_stop or tp or exit:
                 if hit_stop : 
-                    exit_price = stop_price  
+                    exit_price = stop_price
+                    reason = 'stop_loss'
                 else:  
                     exit_price = take_profit
+                    reason = 'take_profit'
                 # exit_row['close']
-                
+                if exit:
+                    exit_price = exit_row['close']
+                    reason = 'close'
+                    
                 pnl = (
                     (exit_price * 0.999 - entry_price * 1.001) / entry_price * 100
                     if position_type == 'long'
@@ -79,7 +87,7 @@ if __name__ == '__main__':
                     'entry_price': entry_price,
                     'exit_price': exit_price,
                     'pnl_%': pnl,
-                    'reason': 'stop_loss' if hit_stop else 'take_profit'
+                    'reason': reason,
                 })
                 in_position = False
 

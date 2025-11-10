@@ -1,13 +1,9 @@
 import config
 import config3 as config2
-from instruments import *
-import pandas as pd
+from instruments import *  # noqa: F403
 import numpy as np
 import datetime
-from collections import deque
-from scipy.stats import zscore
-from pybit.unified_trading import HTTP
-from get_klines import fetch_klines_paged, TRADE_QTY
+from get_klines import fetch_klines_paged
 
 EXIT_AFTER_BARS = 3 #15 минут
 TELEGRAM_CHAT_ID = config2.TELEGRAM_CHAT_ID #свой chat_id
@@ -15,8 +11,7 @@ TELEGRAM_CHAT_ID = config2.TELEGRAM_CHAT_ID #свой chat_id
 def can_enter_again(signal_type, entry_history):
     now = datetime.datetime.now(datetime.UTC)
     cooldown = config.interval * 60
-    return not any((now - t).total_seconds() < cooldown and s == signal_type for t, s in entry_history)
-
+    return not any((now - t).total_seconds() < cooldown and s == signal_type for t, s in entry_history) 
 def get_last_closed_candle():
     df = fetch_klines_paged(total_bars = 3)
     df = df.iloc[:-1]
@@ -68,12 +63,12 @@ def check_signal_row(row, prev_row):
     long_cond = (
         row['close'] < row['lower'] and
         row['CSI'] > 0 and row['CSI'] > prev_row['CSI'] and
-        cluster.startswith('bear') and row['RSI'] < config.rsi
+        cluster.startswith('bear') and row['RSI'] > (100-config.rsi)
     )
     short_cond = (
         row['close'] > row['upper'] and
         row['CSI'] < 0 and row['CSI'] < prev_row['CSI'] and
-        cluster.startswith('bull') and row['RSI'] > (100 - config.rsi)
+        cluster.startswith('bull') and row['RSI'] < config.rsi
     )
 
     if long_cond:
